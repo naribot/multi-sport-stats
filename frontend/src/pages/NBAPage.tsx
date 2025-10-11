@@ -1,9 +1,17 @@
-import { useState } from "react";
+// src/pages/NBAPage.tsx
 import { useNavigate } from "react-router-dom";
-import PlayerCard from "../components/PlayerCard";
-import { fetchPlayerByName } from "../api/soccerApi";
+import { useState } from "react";
 import './SoccerPage.css';
 
+
+type NBAPlayer = {
+  id: number;
+  name: string;
+  team: string;
+  points: number;
+  assists: number;
+  rebounds: number;
+};
 
 type Option = { value: string; label: string };
 
@@ -76,77 +84,56 @@ function MultiStatPicker({
 }
 
 
-export default function SoccerPage() {
-  type SoccerPlayer = {
-  name: string;
-  team: string;
-  goals: number;
-  assists: number;
-  yellowCards: number;
-};
-
-const [compareList, setCompareList] = useState<SoccerPlayer[]>([]);
-const keyOf = (p: SoccerPlayer) => `${p.name}|${p.team}`.toLowerCase();
-
+export default function NBAPage() {
+  const [compareList, setCompareList] = useState<NBAPlayer[]>([]);
+  const keyOf = (p: NBAPlayer) => `${p.id ?? p.name}|${p.team}`.toLowerCase();
   const [query, setQuery] = useState("");
-  const [player, setPlayer] = useState<any>(null);
+  const [player, setPlayer] = useState<NBAPlayer | null>(null);
   const [error, setError] = useState("");
-  const SOCCER_OPTIONS = [
-  { value: "goals", label: "Goals" },
+  const [filter, setFilter] = useState("All");
+  const NBA_OPTIONS = [
+  { value: "points", label: "Points" },
   { value: "assists", label: "Assists" },
-  { value: "yellowCards", label: "Yellow Cards" },
+  { value: "rebounds", label: "Rebounds" },
 ] as const;
 
+
 const [selectedStats, setSelectedStats] = useState<Set<string>>(
-  new Set(SOCCER_OPTIONS.map(o => o.value)) // default: all selected
+  new Set(NBA_OPTIONS.map(o => o.value)) // default: all selected
 );
 const show = (v: string) =>
-  selectedStats.size === SOCCER_OPTIONS.length || selectedStats.has(v);
+  selectedStats.size === NBA_OPTIONS.length || selectedStats.has(v);
 
 
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
+
+    const addToCompare = () => {
+    if (!player) return;
+        setCompareList(prev => {
+        const exists = prev.some(x => keyOf(x) === keyOf(player));
+    return exists ? prev : [...prev, player];
+    });
+   };
+
 
   const handleSearch = async () => {
     setError("");
     try {
-      const data = await fetchPlayerByName(query);
-      if (!data) {
-        setError("Player not found");
-        setPlayer(null);
-      } const mapped: SoccerPlayer = {
-      name: data.name,
-      team: data.team,                  // make sure it's "team" (not teamName)
-      goals: Number(data.goals),
-      assists: Number(data.assists),
-      yellowCards: Number(data.yellowCards),
-    };
-
-    setPlayer(mapped);
-      }
-     catch {
-      setError("Something went wrong. Try again later.");
+      const res = await fetch(`http://localhost:5000/api/nba/players/${query}`);
+      if (!res.ok) throw new Error("Player not found");
+      const data = await res.json();
+      setPlayer(data);
+    } catch (err) {
+      setPlayer(null);
+      setError("Player not found");
     }
   };
 
-  const addToCompare = () => {
-  console.log("Add clicked. player =", player);
-  if (!player) return;
-
-  setCompareList(prev => {
-    const exists = prev.some(x => keyOf(x) === keyOf(player));
-    const next = exists ? prev : [...prev, player];
-    console.log("compareList ->", next);
-    return next;
-  });
-};
-
+  const filteredStat = (stat: keyof NBAPlayer) => filter === "All" || filter === stat;
 
   return (
-
-    
-    <div className="page-wrapper soccer-bg">
-      {/* Header */}
+    <div className="page-wrapper nba-bg">
       <header className="header">
         <div className="header-container">
           <div className="logo">MultiSport Stats</div>
@@ -154,7 +141,7 @@ const show = (v: string) =>
             {["Soccer", "NBA", "NFL", "MLB"].map((sport) => (
               <button
                 key={sport}
-                className={`tab ${sport === "Soccer" ? "active" : ""}`}
+                className={`tab ${sport === "NBA" ? "active" : ""}`}
                 onClick={() => navigate(`/${sport.toLowerCase()}`)}
               >
                 {sport}
@@ -167,15 +154,14 @@ const show = (v: string) =>
         </div>
       </header>
 
-      {/* Hero */}
       <main className="hero">
-        <h1 className="hero-title">FIND YOUR SOCCER STATS</h1>
-        <p className="hero-subtitle">Search by player name to view goals, assists, and disciplinary stats.</p>
+        <h1 className="hero-title">FIND YOUR NBA STATS</h1>
+        <p className="hero-subtitle">Search by player name to view points, assists, and rebounds.</p>
 
         <div className="search-box">
           <input
             type="text"
-            placeholder="Enter player name (e.g., Messi)"
+            placeholder="Enter player name (e.g., Curry)"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
@@ -183,69 +169,68 @@ const show = (v: string) =>
         </div>
 
         <div className="filter-box">
-          <MultiStatPicker
-            options={SOCCER_OPTIONS as unknown as Option[]}
-            selected={selectedStats}
-            onChange={setSelectedStats}
-            label="Filter Stat"
-          />
+            <MultiStatPicker
+                options={NBA_OPTIONS as unknown as Option[]}
+                selected={selectedStats}
+                onChange={setSelectedStats}
+                label="Filter Stat"
+            />
         </div>
 
 
-
-       <div className="result">
+        <div className="result">
         {error && <p className="error">{error}</p>}
         {player && (
-          <>
-  <table className="stats-table">
+            <>
+    <table className="stats-table">
     <thead>
       <tr>
         <th>Player</th>
         <th>Team</th>
-        {show("goals") && <th>Goals</th> }
-        {show("assists") && <th>Assists</th>}
-        {show("yellowCards") &&<th>Yellow Cards</th>}
+        {show("points") &&<th>PPG</th> }
+        {show("assists") && <th>Assists</th> }
+        {show("rebounds") && <th>Rebounds</th> }
       </tr>
     </thead>
     <tbody>
       <tr>
         <td>{player.name}</td>
         <td>{player.team}</td>
-        {show("goals") && <td>{player.goals}</td>}
+        {show("points")  && <td>{player.points}</td>}
         {show("assists") && <td>{player.assists}</td>}
-        {show("yellowCards") && <td>{player.yellowCards}</td>}
+        {show("rebounds") && <td>{player.rebounds}</td>}
       </tr>
     </tbody>
   </table>
   <div className="compare-actions">
       <button className="add-btn" onClick={addToCompare}>Add</button>
-  </div>
+    </div>
   </>
-  
 )}
+
     </div>
     {compareList.length > 0 && (
   <section className="leaderboard">
-    <h2 className="leaderboard-title">Leaderboard (Goals)</h2>
+    <h2 className="leaderboard-title">Leaderboard (Points)</h2>
     <table className="stats-table">
       <thead>
         <tr>
           <th>#</th>
           <th>Player</th>
           <th>Team</th>
-          <th>Goals</th>
+          <th>PPG</th>
           <th style={{width: 90}}>Actions</th>
         </tr>
       </thead>
       <tbody>
         {[...compareList]
-          .sort((a, b) => b.goals - a.goals)
+          .sort((a, b) => b.points - a.points)
           .map((p, i) => (
             <tr key={keyOf(p)}>
               <td>{i + 1}</td>
               <td>{p.name}</td>
               <td>{p.team}</td>
-              <td>{p.goals}</td>
+              <td>{p.points}</td>
               <td>
                 <button
                   className="remove-btn"
@@ -266,7 +251,8 @@ const show = (v: string) =>
     </div>
   </section>
 )}
-  </main>
-</div>
+
+      </main>
+    </div>
   );
 }

@@ -153,6 +153,7 @@
         }
 
         .filter-box {
+          font-family: 'Segoe UI', sans-serif;
           margin-top: 1rem;
           margin-bottom: 1.5rem;
           color: #ccc;
@@ -169,4 +170,97 @@
           color: white;
           border-radius: 4px;
         }
+
+        .soccer-bg {
+          background: linear-gradient(to bottom, #1a1a1a 0%, #004d00 100%); 
+          background-image: url('https://wallpapers.com/images/hd/uefa-champions-league-star-arena-design-a41vpzhw46us8102.jpg');
+          background-size: cover;
+          background-repeat: no-repeat;
+          background-position: center top;
+        }
+
+        .nba-bg {
+          background: linear-gradient(to bottom, #1a1a1a 0%, #004d00 100%); 
+          background-image: url('https://wallpaperaccess.com/full/1305335.jpg');
+          background-size: cover;
+          background-repeat: no-repeat;
+          background-position: center top;
+        }
+
+        .multiselect { position: relative; display: inline-block; }
+        .ms-trigger {
+          background-color: #1a1a1a;
+          border: 1px solid #444;
+          color: white;
+          padding: 0.5rem 0.75rem;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 600;
+        }
+        .ms-menu {
+          position: absolute;
+          top: calc(100% + 6px);
+          right: 0;
+          min-width: 220px;
+          background: #111;
+          border: 1px solid #333;
+          border-radius: 8px;
+          padding: 0.5rem;
+          box-shadow: 0 10px 20px rgba(0,0,0,.45);
+          z-index: 50;
+        }
+        .ms-item {
+          display: flex;
+          align-items: center;
+          gap: .5rem;
+          padding: .35rem .4rem;
+          cursor: pointer;
+          user-select: none;
+          border-radius: 6px;
+        }
+        .ms-item:hover { background: #1e1e1e; }
+        .ms-menu input[type="checkbox"] { accent-color: #0070f3; }
+
+        .compare-actions {
+  display: flex;
+  gap: .75rem;
+  justify-content: flex-end;
+  margin: .75rem auto 0;
+  max-width: 800px;
+}
+
+.add-btn, .remove-btn, .clear-btn {
+  background-color: #0070f3;
+  color: white;
+  border: none;
+  font-weight: 700;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color .2s ease;
+}
+.add-btn:hover, .clear-btn:hover { background-color: #005ad4; }
+
+.remove-btn {
+  background-color: #b91c1c;
+}
+.remove-btn:hover {
+  background-color: #991b1b;
+}
+
+.leaderboard {
+  margin: 3rem auto 3.5rem;
+  max-width: 900px;
+  width: 100%;
+  text-align: center;
+}
+.leaderboard-title {
+  font-size: 1.5rem;
+  font-weight: 1000;
+  margin: 0 0 1rem 0;
+  color: #eaeaea;
+
+}
+
+
 

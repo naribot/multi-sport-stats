@@ -43,7 +43,7 @@ export default function Navbar() {
         <nav className="pb-4">
           <ul className="grid grid-cols-4 gap-3 text-white">
             <li><Tab to="/soccer">Soccer</Tab></li>
-            <li><Tab disabled>NBA</Tab></li>
+            <li><Tab to="/nba">NBA</Tab></li>
             <li><Tab disabled>NFL</Tab></li>
             <li><Tab disabled>MLB</Tab></li>
           </ul>

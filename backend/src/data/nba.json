@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "name": "LeBron James",
+    "team": "Los Angeles Lakers",
+    "points": 27,
+    "assists": 8,
+    "rebounds": 7
+  },
+  {
+    "id": 2,
+    "name": "Stephen Curry",
+    "team": "Golden State Warriors",
+    "points": 29,
+    "assists": 6,
+    "rebounds": 5
+  },
+  {
+    "id": 3,
+    "name": "Kevin Durant",
+    "team": "Phoenix Suns",
+    "points": 30,
+    "assists": 5,
+    "rebounds": 6
+  },
+  {
+    "id": 4,
+    "name": "Jayson Tatum",
+    "team": "Boston Celtics",
+    "points": 28,
+    "assists": 4,
+    "rebounds": 8
+  },
+  {
+    "id": 5,
+    "name": "Luka Dončić",
+    "team": "Dallas Mavericks",
+    "points": 32,
+    "assists": 9,
+    "rebounds": 7
+  },
+  {
+    "id": 6,
+    "name": "Giannis Antetokounmpo",
+    "team": "Milwaukee Bucks",
+    "points": 31,
+    "assists": 6,
+    "rebounds": 12
+  },
+  {
+    "id": 7,
+    "name": "Joel Embiid",
+    "team": "Philadelphia 76ers",
+    "points": 33,
+    "assists": 4,
+    "rebounds": 11
+  },
+  {
+    "id": 8,
+    "name": "Ja Morant",
+    "team": "Memphis Grizzlies",
+    "points": 26,
+    "assists": 7,
+    "rebounds": 5
+  },
+  {
+    "id": 9,
+    "name": "Devin Booker",
+    "team": "Phoenix Suns",
+    "points": 27,
+    "assists": 6,
+    "rebounds": 4
+  },
+  {
+    "id": 10,
+    "name": "Anthony Edwards",
+    "team": "Minnesota Timberwolves",
+    "points": 25,
+    "assists": 4,
+    "rebounds": 5
+  }
+]
