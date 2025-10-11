@@ -1,0 +1,90 @@
+[
+  {
+    "id": 1,
+    "name": "Lionel Messi",
+    "team": "Inter Miami",
+    "goals": 20,
+    "assists": 15,
+    "yellowCards": 2
+  },
+  {
+    "id": 2,
+    "name": "Cristiano Ronaldo",
+    "team": "Al Nassr",
+    "goals": 25,
+    "assists": 5,
+    "yellowCards": 4
+  },
+  {
+    "id": 3,
+    "name": "Kylian Mbappé",
+    "team": "PSG",
+    "goals": 18,
+    "assists": 10,
+    "yellowCards": 1
+  },
+  {
+    "id": 4,
+    "name": "Ousmane Dembélé",
+    "team": "PSG",
+    "goals": 6,
+    "assists": 12,
+    "yellowCards": 3
+  },
+  {
+    "id": 5,
+    "name": "Cole Palmer",
+    "team": "Chelsea",
+    "goals": 10,
+    "assists": 7,
+    "yellowCards": 2
+  },
+  {
+    "id": 6,
+    "name": "Alexander Isak",
+    "team": "Newcastle United",
+    "goals": 14,
+    "assists": 4,
+    "yellowCards": 1
+  },
+  {
+    "id": 7,
+    "name": "Mohamed Salah",
+    "team": "Liverpool",
+    "goals": 19,
+    "assists": 9,
+    "yellowCards": 2
+  },
+  {
+    "id": 8,
+    "name": "Vinícius Júnior",
+    "team": "Real Madrid",
+    "goals": 13,
+    "assists": 8,
+    "yellowCards": 3
+  },
+  {
+    "id": 9,
+    "name": "Declan Rice",
+    "team": "Arsenal",
+    "goals": 5,
+    "assists": 6,
+    "yellowCards": 5
+  },
+  {
+    "id": 10,
+    "name": "Vitinha",
+    "team": "PSG",
+    "goals": 4,
+    "assists": 5,
+    "yellowCards": 1
+  },
+  {
+    "id": 11,
+    "name": "Jude Bellingham",
+    "team": "Real Madrid",
+    "goals": 16,
+    "assists": 7,
+    "yellowCards": 3
+  }
+]

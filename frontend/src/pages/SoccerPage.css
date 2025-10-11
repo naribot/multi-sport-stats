@@ -1,0 +1,172 @@
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: red !important;
+        }
+        body, html, .page-wrapper {
+          height: 100%;
+          font-family: 'Segoe UI', sans-serif;
+          background-color: #302d2d;
+          color: white;
+        }
+        .header {
+          background-color: #1a1a1a;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .header-container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 1rem 2rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        .logo {
+          font-size: 1.5rem;
+          font-weight: bold;
+        }
+        .nav-tabs {
+          display: flex;
+          gap: 1.5rem;
+        }
+        .tab {
+          padding: 0.5rem 1rem;
+          background: none;
+          color: white;
+          border: none;
+          font-weight: 600;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+        }
+        .tab:hover {
+          background-color: #333;
+        }
+        .tab.active {
+          background-color: #0070f3;
+        }
+        .auth-buttons .sign-in {
+          background-color: #ffde59;
+          border: none;
+          padding: 0.4rem 1rem;
+          border-radius: 4px;
+          font-weight: bold;
+          cursor: pointer;
+          color: black;
+        }
+        .hero {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 3rem 1rem;
+          text-align: center;
+        }
+        .hero-title {
+          font-size: 2.5rem;
+          font-weight: 800;
+          margin-bottom: 1rem;
+        }
+        .hero-subtitle {
+          color: #aaa;
+          margin-bottom: 2rem;
+          font-size: 1rem;
+        }
+        .search-box {
+          display: flex;
+          background-color: #1a1a1a;
+          border: 1px solid #333;
+          border-radius: 8px;
+          overflow: hidden;
+          max-width: 500px;
+          width: 100%;
+        }
+        .search-box input {
+          flex-grow: 1;
+          padding: 0.75rem 1rem;
+          border: none;
+          background: transparent;
+          color: white;
+          font-size: 1rem;
+        }
+        .search-box input::placeholder {
+          color: #888;
+        }
+        .search-box button {
+          background-color: #0070f3;
+          color: white;
+          padding: 0 1.5rem;
+          border: none;
+          font-weight: bold;
+          cursor: pointer;
+          transition: background-color 0.2s ease;
+        }
+        .search-box button:hover {
+          background-color: #005ad4;
+        }
+        
+        .result{
+            margin-top: 2rem;
+        }
+        .error {
+          color: #f87171;
+          font-weight: bold;
+        }
+
+        .stats-table {
+          width: 100%;
+          max-width: 800px;
+          margin: 0 auto;
+          border-collapse: collapse;
+          color: white;
+          background-color: #1f1f1f;
+          border: 1px solid #333;
+          border-radius: 8px;
+          overflow: hidden;
+          font-size: 0.95rem;
+        }
+
+        .stats-table thead {
+          background-color: #2c2c2c;
+        }
+
+        .stats-table th, .stats-table td {
+          padding: 1rem;
+          text-align: left;
+          border-bottom: 1px solid #333;
+        }
+
+        .stats-table th {
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          color: #bbb;
+          letter-spacing: 0.05em;
+        }
+
+        .stats-table td {
+          font-size: 1rem;
+          color: #f0f0f0;
+        }
+
+        .stats-table tr:hover {
+          background-color: #292929;
+        }
+
+        .filter-box {
+          margin-top: 1rem;
+          margin-bottom: 1.5rem;
+          color: #ccc;
+          font-size: 0.95rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .filter-box select {
+          padding: 0.4rem 0.6rem;
+          background-color: #1a1a1a;
+          border: 1px solid #444;
+          color: white;
+          border-radius: 4px;
+        }
+

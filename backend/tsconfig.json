@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    /* === ESM Setup === */
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "verbatimModuleSyntax": false,
+
+    /* === Paths === */
+    "rootDir": "./src",
+    "outDir": "./dist",
+
+    /* === Compatibility === */
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* === Type Safety === */
+    "strict": true,
+    "skipLibCheck": true,
+
+    /* === Source Map === */
+    "sourceMap": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}
