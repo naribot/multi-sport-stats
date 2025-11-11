@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "name": "Shohei Ohtani",
+    "team": "Los Angeles Dodgers",
+    "homeRuns": 44,
+    "battingAverage": 0.304,
+    "RBIs": 95
+  },
+  {
+    "id": 2,
+    "name": "Aaron Judge",
+    "team": "New York Yankees",
+    "homeRuns": 52,
+    "battingAverage": 0.289,
+    "RBIs": 110
+  },
+  {
+    "id": 3,
+    "name": "Mookie Betts",
+    "team": "Los Angeles Dodgers",
+    "homeRuns": 35,
+    "battingAverage": 0.281,
+    "RBIs": 90
+  },
+  {
+    "id": 4,
+    "name": "Freddie Freeman",
+    "team": "Los Angeles Dodgers",
+    "homeRuns": 29,
+    "battingAverage": 0.327,
+    "RBIs": 100
+  },
+  {
+    "id": 5,
+    "name": "Juan Soto",
+    "team": "San Diego Padres",
+    "homeRuns": 32,
+    "battingAverage": 0.285,
+    "RBIs": 89
+  },
+  {
+    "id": 6,
+    "name": "Ronald Acuña Jr.",
+    "team": "Atlanta Braves",
+    "homeRuns": 41,
+    "battingAverage": 0.337,
+    "RBIs": 106
+  },
+  {
+    "id": 7,
+    "name": "Bryce Harper",
+    "team": "Philadelphia Phillies",
+    "homeRuns": 26,
+    "battingAverage": 0.291,
+    "RBIs": 85
+  },
+  {
+    "id": 8,
+    "name": "Jose Ramirez",
+    "team": "Cleveland Guardians",
+    "homeRuns": 28,
+    "battingAverage": 0.273,
+    "RBIs": 93
+  },
+  {
+    "id": 9,
+    "name": "Matt Olson",
+    "team": "Atlanta Braves",
+    "homeRuns": 54,
+    "battingAverage": 0.283,
+    "RBIs": 135
+  },
+  {
+    "id": 10,
+    "name": "Corey Seager",
+    "team": "Texas Rangers",
+    "homeRuns": 33,
+    "battingAverage": 0.324,
+    "RBIs": 96
+  }
+]

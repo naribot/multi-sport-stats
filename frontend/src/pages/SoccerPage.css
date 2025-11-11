@@ -186,6 +186,22 @@
           background-repeat: no-repeat;
           background-position: center top;
         }
+        .nfl-bg {
+          background: linear-gradient(to bottom, #1a1a1a 0%, #004d00 100%); 
+          background-image: url('https://www.programme-tv.net/imgre/fit/~2~program~6e74a6f4c8db36b3.jpeg/1260x710/quality/80/football-americain-nfl.jpg');
+          background-size: cover;
+          background-repeat: no-repeat;
+          background-position: center top;
+        }
+
+        .mlb-bg {
+          background: linear-gradient(to bottom, #1a1a1a 0%, #004d00 100%); 
+          background-image: url('https://th.bing.com/th/id/R.88f6003369532feb3841890cf3d78d76?rik=mzt3SkAhQr2VuQ&riu=http%3a%2f%2fgetwallpapers.com%2fwallpaper%2ffull%2fc%2f4%2f7%2f907386-cool-baseball-desktop-wallpaper-1920x1080.jpg&ehk=CQCkU%2b0JqylRIBYqHCxYUS3XnqqxJOXl77hcumrDiAY%3d&risl=&pid=ImgRaw&r=0');
+          background-size: cover;
+          background-repeat: no-repeat;
+          background-position: center top;
+        }
+
 
         .multiselect { position: relative; display: inline-block; }
         .ms-trigger {

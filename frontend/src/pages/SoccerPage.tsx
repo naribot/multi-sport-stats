@@ -80,6 +80,7 @@ export default function SoccerPage() {
   type SoccerPlayer = {
   name: string;
   team: string;
+  position: string;
   goals: number;
   assists: number;
   yellowCards: number;
@@ -116,7 +117,8 @@ const show = (v: string) =>
         setPlayer(null);
       } const mapped: SoccerPlayer = {
       name: data.name,
-      team: data.team,                  // make sure it's "team" (not teamName)
+      team: data.team,
+      position: data.position,                  
       goals: Number(data.goals),
       assists: Number(data.assists),
       yellowCards: Number(data.yellowCards),
@@ -202,6 +204,7 @@ const show = (v: string) =>
       <tr>
         <th>Player</th>
         <th>Team</th>
+        <th>Position</th>
         {show("goals") && <th>Goals</th> }
         {show("assists") && <th>Assists</th>}
         {show("yellowCards") &&<th>Yellow Cards</th>}
@@ -211,6 +214,7 @@ const show = (v: string) =>
       <tr>
         <td>{player.name}</td>
         <td>{player.team}</td>
+        {show("position") && <td>{player.position}</td>}
         {show("goals") && <td>{player.goals}</td>}
         {show("assists") && <td>{player.assists}</td>}
         {show("yellowCards") && <td>{player.yellowCards}</td>}
@@ -233,6 +237,7 @@ const show = (v: string) =>
           <th>#</th>
           <th>Player</th>
           <th>Team</th>
+          <th>Position</th>
           <th>Goals</th>
           <th style={{width: 90}}>Actions</th>
         </tr>
@@ -245,6 +250,7 @@ const show = (v: string) =>
               <td>{i + 1}</td>
               <td>{p.name}</td>
               <td>{p.team}</td>
+              <td>{p.position}</td>
               <td>{p.goals}</td>
               <td>
                 <button
