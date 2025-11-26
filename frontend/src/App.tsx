@@ -4,6 +4,10 @@ import Navbar from "./components/Navbar";
 import NBAPage from "./pages/NBAPage";
 import NFLPage from "./pages/NFLPage";
 import MLBPage from "./pages/MLBPage";
+import SignUpPage from "./components/SignUpPage";
+
+
+
 
 
 export default function App() {
@@ -16,6 +20,7 @@ export default function App() {
         <Route path="/nba" element={<NBAPage />} />
         <Route path="/nfl" element={<NFLPage />} />
         <Route path="/mlb" element={<MLBPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
       </Routes>
     </BrowserRouter>
   );

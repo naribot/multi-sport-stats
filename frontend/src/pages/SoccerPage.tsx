@@ -7,6 +7,91 @@ import './SoccerPage.css';
 
 type Option = { value: string; label: string };
 
+function SignInModal({
+  onClose,
+  onSignIn,
+}: {
+  onClose: () => void;
+  onSignIn: (username: string) => void;
+}) {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = () => {
+    if (username.trim() && password.trim()) {
+      const trimmedUser = username.trim();
+      localStorage.setItem("user", trimmedUser);
+      onSignIn(trimmedUser);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="modal-backdrop">
+      <div className="modal-box">
+        <h2>Sign In</h2>
+
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <div className="modal-actions">
+          <button className="sign-in" onClick={handleSubmit}>
+            Submit
+          </button>
+          <button onClick={onClose}>Cancel</button>
+        </div>
+
+        <button
+          className="signup-link"
+          onClick={() => {
+            onClose();
+            navigate("/signup");
+          }}
+        >
+          New here? Create an account
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LogoutModal({
+  onClose,
+  onConfirm,
+}: {
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="modal-backdrop">
+      <div className="modal-box">
+        <h2>Log Out?</h2>
+        <p>Are you sure you want to log out?</p>
+
+        <div className="modal-actions">
+          <button className="sign-in" onClick={onConfirm}>
+            Yes, Log Out
+          </button>
+          <button onClick={onClose}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 function MultiStatPicker({
   options,
   selected,
@@ -86,6 +171,17 @@ export default function SoccerPage() {
   yellowCards: number;
 };
 
+const [showLogoutModal, setShowLogoutModal] = useState(false);
+const [loading, setLoading] = useState(false); 
+const [showSignIn, setShowSignIn] = useState(false);
+const [user, setUser] = useState(localStorage.getItem("user"));
+
+//const logout = () => {
+  //localStorage.removeItem("user");
+  //setUser(null);
+//};
+
+
 const [compareList, setCompareList] = useState<SoccerPlayer[]>([]);
 const keyOf = (p: SoccerPlayer) => `${p.name}|${p.team}`.toLowerCase();
 
@@ -109,27 +205,31 @@ const show = (v: string) =>
   const navigate = useNavigate();
 
   const handleSearch = async () => {
-    setError("");
-    try {
-      const data = await fetchPlayerByName(query);
-      if (!data) {
-        setError("Player not found");
-        setPlayer(null);
-      } const mapped: SoccerPlayer = {
-      name: data.name,
-      team: data.team,
-      position: data.position,                  
-      goals: Number(data.goals),
-      assists: Number(data.assists),
-      yellowCards: Number(data.yellowCards),
-    };
-
-    setPlayer(mapped);
-      }
-     catch {
-      setError("Something went wrong. Try again later.");
+  setError("");
+  setLoading(true); // **CHANGE HERE: start loading**
+  try {
+    const data = await fetchPlayerByName(query);
+    if (!data) {
+      setError("Player not found");
+      setPlayer(null);
+    } else {
+      const mapped: SoccerPlayer = {
+        name: data.name,
+        team: data.team,
+        position: data.position,                  
+        goals: Number(data.goals),
+        assists: Number(data.assists),
+        yellowCards: Number(data.yellowCards),
+      };
+      setPlayer(mapped);
     }
-  };
+  } catch {
+    setError("Something went wrong. Try again later.");
+  } finally {
+    setLoading(false); // **CHANGE HERE: stop loading**
+  }
+};
+
 
   const addToCompare = () => {
   console.log("Add clicked. player =", player);
@@ -164,7 +264,26 @@ const show = (v: string) =>
             ))}
           </nav>
           <div className="auth-buttons">
-            <button className="sign-in">Sign In</button>
+            {user ? (
+                      <>
+                        <span style={{ marginRight: "1rem" }}>Hi, {user}!</span>
+                        <button className="sign-in" onClick={() => setShowLogoutModal(true)}>Logout</button>
+
+                        {showLogoutModal && (
+                          <LogoutModal
+                            onClose={() => setShowLogoutModal(false)}
+                            onConfirm={() => {
+                            localStorage.removeItem("user");
+                            setShowLogoutModal(false);
+                            window.location.reload();
+                            }}
+                          />
+                        )}
+                      </>
+                    ) : (
+                        <button className="sign-in" onClick={() => setShowSignIn(true)}>Sign In</button>
+                        )
+              }
           </div>
         </div>
       </header>
@@ -193,6 +312,7 @@ const show = (v: string) =>
           />
         </div>
 
+        {loading && <p style={{ textAlign: "center", color: "white" }}>Loading player stats...</p>} 
 
 
        <div className="result">
@@ -214,7 +334,7 @@ const show = (v: string) =>
       <tr>
         <td>{player.name}</td>
         <td>{player.team}</td>
-        {show("position") && <td>{player.position}</td>}
+        <td>{player.position}</td>
         {show("goals") && <td>{player.goals}</td>}
         {show("assists") && <td>{player.assists}</td>}
         {show("yellowCards") && <td>{player.yellowCards}</td>}
@@ -273,6 +393,13 @@ const show = (v: string) =>
   </section>
 )}
   </main>
+  {showSignIn && (
+  <SignInModal
+    onClose={() => setShowSignIn(false)}
+    onSignIn={(username) => setUser(username)}
+  />
+)}
+
 </div>
   );
 }

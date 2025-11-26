@@ -3,6 +3,67 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import './SoccerPage.css';
 
+
+function SignInModal({
+  onClose,
+  onSignIn,
+}: {
+  onClose: () => void;
+  onSignIn: (username: string) => void;
+}) {
+  const navigate = useNavigate();
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleSubmit = () => {
+    if (username.trim() && password.trim()) {
+      const trimmedUser = username.trim();
+      localStorage.setItem("user", trimmedUser);
+      onSignIn(trimmedUser);
+      onClose();
+    }
+  };
+
+  return (
+    <div className="modal-backdrop">
+      <div className="modal-box">
+        <h2>Sign In</h2>
+
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <div className="modal-actions">
+          <button className="sign-in" onClick={handleSubmit}>
+            Submit
+          </button>
+          <button onClick={onClose}>Cancel</button>
+        </div>
+
+        <button
+          className="signup-link"
+          onClick={() => {
+            onClose();
+            navigate("/signup");
+          }}
+        >
+          New here? Create an account
+        </button>
+      </div>
+    </div>
+  );
+}
+
 type NFLPlayer = {
   id: number;
   name: string;
@@ -13,6 +74,30 @@ type NFLPlayer = {
 };
 
 type Option = { value: string; label: string };
+
+function LogoutModal({
+  onClose,
+  onConfirm,
+}: {
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="modal-backdrop">
+      <div className="modal-box">
+        <h2>Log Out?</h2>
+        <p>Are you sure you want to log out?</p>
+
+        <div className="modal-actions">
+          <button className="sign-in" onClick={onConfirm}>
+            Yes, Log Out
+          </button>
+          <button onClick={onClose}>Cancel</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function MultiStatPicker({
   options,
@@ -78,6 +163,10 @@ export default function NFLPage() {
 
   const keyOf = (p: NFLPlayer) => `${p.id ?? p.name}|${p.team}`.toLowerCase();
 
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [user, setUser] = useState(localStorage.getItem("user"));
+
   const NFL_OPTIONS = [
     { value: "touchdowns", label: "Touchdowns" },
     { value: "yards", label: "Yards" },
@@ -128,7 +217,26 @@ export default function NFLPage() {
             ))}
           </nav>
           <div className="auth-buttons">
-            <button className="sign-in">Sign In</button>
+            {user ? (
+                      <>
+                        <span style={{ marginRight: "1rem" }}>Hi, {user}!</span>
+                        <button className="sign-in" onClick={() => setShowLogoutModal(true)}>Logout</button>
+
+                        {showLogoutModal && (
+                          <LogoutModal
+                            onClose={() => setShowLogoutModal(false)}
+                            onConfirm={() => {
+                            localStorage.removeItem("user");
+                            setShowLogoutModal(false);
+                            window.location.reload();
+                            }}
+                          />
+                        )}
+                      </>
+                    ) : (
+                        <button className="sign-in" onClick={() => setShowSignIn(true)}>Sign In</button>
+                        )
+              }
           </div>
         </div>
       </header>
@@ -229,6 +337,12 @@ export default function NFLPage() {
           </section>
         )}
       </main>
+      {showSignIn && (
+  <SignInModal
+    onClose={() => setShowSignIn(false)}
+    onSignIn={(username) => setUser(username)}
+  />
+)}
     </div>
   );
 }

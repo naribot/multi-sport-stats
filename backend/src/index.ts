@@ -1,7 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
+console.log("Loaded FOOTBALL_API_KEY:", process.env.FOOTBALL_API_KEY);
 import express from "express";
 import cors from "cors";
 
-// 👇 Always import as * to handle .default automatically
+// import as * to handle .default automatically
 import * as soccerModule from "./routes/soccer.js";
 import * as nbaModule from "./routes/nba.js";
 import * as nflModule from "./routes/nfl.js";
@@ -13,7 +16,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ Extract default export safely
+// Extract default export safely
 const soccerRouter = soccerModule.default || soccerModule;
 const nbaRouter = nbaModule.default || nbaModule;
 const nflRouter = nflModule.default || nflModule;
@@ -24,7 +27,6 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
 
-// ✅ Use router confidently
 
 app.use("/api/soccer", soccerRouter);
 app.use("/api/nba", nbaRouter);
