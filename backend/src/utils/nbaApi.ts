@@ -1,67 +1,85 @@
+import dotenv from "dotenv";
+dotenv.config();
 import fetch from "node-fetch";
 
-const API_KEY =
-  process.env.SPORTSDATA_KEY || "5f6a6e7744b84d3fa59c67649a59a06c";
+const API_KEY = process.env.BALLDONTLIE_KEY;  
 
 export interface NBAStats {
   name: string;
   team: string;
-  points: number;
-  assists: number;
-  rebounds: number;
+  points: number;     // PPG
+  assists: number;    // APG
+  rebounds: number;   // RPG
   totalPoints: number;
 }
 
 export async function fetchNBAPlayerStats(
   name: string
 ): Promise<NBAStats | null> {
-  const season = 2025; 
-  const url = `https://api.sportsdata.io/v3/nba/stats/json/PlayerSeasonStats/${season}?key=${API_KEY}`;
+  console.log("🔎 Searching NBA player:", name);
 
-  console.log("🏀 Calling:", url);
+  // 1️⃣ Step 1: Search player by name to get ID
+  const searchUrl = `https://api.balldontlie.io/nba/v1/players?search=${encodeURIComponent(
+    name
+  )}`;
 
-  const response = await fetch(url);
-  if (!response.ok) {
-    console.error("SportsData error:", await response.text());
+  const searchResponse = await fetch(searchUrl, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
+
+  if (!searchResponse.ok) {
+    console.error("❌ Player search failed:", await searchResponse.text());
     return null;
   }
 
-  const players: any[] = await response.json();
+  const playerData = await searchResponse.json();
 
-  const search = name.toLowerCase().trim();
-
-  // Correct matching: Uses Name ONLY
-  const match = players.find((p) =>
-    (p.Name ?? "").toLowerCase().includes(search)
-  );
-
-  if (!match) {
-    console.log("❌ Player not found in season stats");
+  if (!playerData.data || playerData.data.length === 0) {
+    console.log("❌ No player found.");
     return null;
   }
 
-  const games = Number(match.Games || 1);
+  // Use the first matching player
+  const player = playerData.data[0];
+  const playerId = player.id;
 
-  const fg2 = Number(match.TwoPointersMade ?? 0);
-  const fg3 = Number(match.ThreePointersMade ?? 0);
-  const ft  = Number(match.FreeThrowsMade ?? 0);
+  console.log(`📌 Found player ID: ${playerId}`);
 
-  const realPoints = (fg2 * 2) + (fg3 * 3) + ft;
+  // 2️⃣ Step 2: Fetch season averages (PPG, APG, RPG, etc.)
+  const statsUrl = `https://api.balldontlie.io/nba/v1/season_averages/general?season=2024&season_type=regular&type=base&player_ids[]=${playerId}`;
 
-  const totalPoints =
-  (Number(match.TwoPointersMade ?? 0) * 2) +
-  (Number(match.ThreePointersMade ?? 0) * 3) +
-  (Number(match.FreeThrowsMade ?? 0));
+  const statsResponse = await fetch(statsUrl, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
 
-  const totalAssists = Number(match.Assists ?? 0);
-  const totalRebounds = Number(match.Rebounds ?? 0);
+  if (!statsResponse.ok) {
+    console.error("❌ Season averages error:", await statsResponse.text());
+    return null;
+  }
+
+  const statsJson = await statsResponse.json();
+
+  if (!statsJson.data || statsJson.data.length === 0) {
+    console.log("❌ No season stats found for player.");
+    return null;
+  }
+
+  const s = statsJson.data[0].stats;
+
+  // Extract main numbers
+  const ppg = s.pts ?? 0;
+  const apg = s.ast ?? 0;
+  const rpg = s.reb ?? 0;
+
+  // total points using per game * games played
+  const totalPoints = (s.pts ?? 0) * (s.gp ?? 1);
 
   return {
-    name: match.Name,
-    team: match.Team,
-    points: Number((realPoints / games).toFixed(1)),
-    assists: Number((totalAssists / games).toFixed(1)),
-    rebounds: Number((totalRebounds / games).toFixed(1)),
-    totalPoints: totalPoints,
+    name: `${player.first_name} ${player.last_name}`,
+    team: player.team?.name ?? "Unknown",
+    points: Number(ppg.toFixed(1)),
+    assists: Number(apg.toFixed(1)),
+    rebounds: Number(rpg.toFixed(1)),
+    totalPoints: Number(totalPoints.toFixed(0)),
   };
 }

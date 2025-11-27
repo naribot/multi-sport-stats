@@ -11,7 +11,7 @@ router.get("/players/:name", async (req, res) => {
   const stats = await fetchNBAPlayerStats(name);
 
   if (!stats) {
-    return res.status(404).json({ message: "Player not found" });
+    return res.status(404).json({ message: "Player not found or no stats available" });
   }
 
   return res.json(stats);
