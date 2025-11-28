@@ -5,6 +5,7 @@ import fetch from "node-fetch";
 
 const API_KEY = process.env.BALLDONTLIE_KEY;
 
+
 export interface NFLStats {
   id: number;
   name: string;
@@ -14,6 +15,24 @@ export interface NFLStats {
   interceptions: number;
 }
 
+export interface NFLExpandedStats {
+  id: number;
+  name: string;
+  age: number | null;
+
+  rushingYards: number;
+  rushingAttempts: number;
+  rushingTD: number;
+  yardsPerRush: number;
+
+  receivingYards: number;
+  receptions: number;
+  receivingTD: number;
+
+  fumbles: number;
+}
+
+
 export async function fetchNFLPlayerStats(
   name: string
 ): Promise<NFLStats | null> {
@@ -22,7 +41,7 @@ export async function fetchNFLPlayerStats(
     return null;
   }
 
-  // Use last name to make the search more reliable
+  // Using last name to make the search more reliable
   const parts = name.trim().split(" ");
   const lastName = parts[parts.length - 1];
 
@@ -131,5 +150,68 @@ export async function fetchNFLPlayerStats(
     touchdowns: totals.touchdowns,
     yards: totals.yards,
     interceptions: totals.interceptions,
+  };
+}
+export async function fetchNFLPlayerDetails(
+  name: string
+): Promise<NFLExpandedStats | null> {
+  const last = name.trim().split(" ").pop();
+
+  // 1️⃣ Search player
+  const playerUrl = `https://api.balldontlie.io/nfl/v1/players?search=${encodeURIComponent(
+    last!
+  )}&per_page=25`;
+
+  console.log("🔎 NFL Detail Search URL:", playerUrl);
+
+  const playerRes = await fetch(playerUrl, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
+
+  if (!playerRes.ok) {
+    console.error("❌ NFL player search failed:", await playerRes.text());
+    return null;
+  }
+
+  const playerJson: any = await playerRes.json();
+  if (!playerJson.data?.length) return null;
+
+  const player = playerJson.data[0];
+  const playerId = player.id;
+
+  // 2️⃣ Fetch season stats
+  const statsUrl = `https://api.balldontlie.io/nfl/v1/season_stats?player_ids[]=${playerId}&season=2024`;
+
+  console.log("📊 NFL Detail Stats URL:", statsUrl);
+
+  const statsRes = await fetch(statsUrl, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
+
+  if (!statsRes.ok) {
+    console.error("❌ NFL detailed stats failed:", await statsRes.text());
+    return null;
+  }
+
+  const statsJson: any = await statsRes.json();
+  const s = statsJson.data?.[0];
+
+  if (!s) return null;
+
+  return {
+    id: player.id,
+    name: `${player.first_name} ${player.last_name}`,
+    age: player.age ?? null,
+
+    rushingYards: s.rushing_yards ?? 0,
+    rushingAttempts: s.rushing_attempts ?? 0,
+    rushingTD: s.rushing_touchdowns ?? 0,
+    yardsPerRush: s.yards_per_rush_attempt ?? 0,
+
+    receivingYards: s.receiving_yards ?? 0,
+    receptions: s.receptions ?? 0,
+    receivingTD: s.receiving_touchdowns ?? 0,
+
+    fumbles: s.rushing_fumbles ?? 0,
   };
 }

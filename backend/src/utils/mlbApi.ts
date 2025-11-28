@@ -14,6 +14,26 @@ export interface MLBStats {
   RBIs: number;
 }
 
+export interface MLBExpandedStats {
+  id: number;
+  name: string;
+  team: string;
+  age: number | null;
+  games: number;
+  plateAppearances: number;
+  hits: number;
+  doubles: number;
+  triples: number;
+  homeRuns: number;
+  RBIs: number;
+  walks: number;
+  strikeouts: number;
+  battingAverage: number;
+  obp: number;   
+  slg: number;   
+  ops: number;   
+}
+
 export async function fetchMLBPlayerStats(
   name: string
 ): Promise<MLBStats | null> {
@@ -72,5 +92,65 @@ export async function fetchMLBPlayerStats(
     homeRuns: stat.batting_hr ?? 0,
     battingAverage: Number(stat.batting_avg ?? 0),
     RBIs: stat.batting_rbi ?? 0,
+  };
+}
+export async function fetchMLBPlayerExpandedStats(
+  name: string
+): Promise<MLBExpandedStats | null> {
+  const searchName = name.trim().split(" ").pop();
+
+  // 1. Search player
+  const playerUrl = `https://api.balldontlie.io/mlb/v1/players?search=${encodeURIComponent(
+    searchName!
+  )}`;
+
+  const playerRes = await fetch(playerUrl, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
+
+  if (!playerRes.ok) {
+    console.error("❌ MLB expanded search error:", await playerRes.text());
+    return null;
+  }
+
+  const playerJson: any = await playerRes.json();
+  if (!playerJson.data?.length) return null;
+
+  const player = playerJson.data[0];
+
+  // 2. Expanded season stats
+  const statUrl = `https://api.balldontlie.io/mlb/v1/season_stats?player_ids[]=${player.id}&season=2024&type=batting`;
+
+  const statRes = await fetch(statUrl, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
+
+  if (!statRes.ok) {
+    console.error("❌ MLB expanded stats error:", await statRes.text());
+    return null;
+  }
+
+  const json = await statRes.json();
+  const s = json.data?.[0];
+  if (!s) return null;
+
+  return {
+    id: player.id,
+    name: `${player.first_name} ${player.last_name}`,
+    team: s.team_name ?? "Unknown",
+    age: player.age ?? null,
+    games: s.batting_gp ?? 0,              
+    plateAppearances: s.batting_ab ?? 0,
+    hits: s.batting_h ?? 0,
+    doubles: s.batting_2b ?? 0,
+    triples: s.batting_3b ?? 0,
+    homeRuns: s.batting_hr ?? 0,
+    RBIs: s.batting_rbi ?? 0,
+    walks: s.batting_bb ?? 0,
+    strikeouts: s.batting_so ?? 0,
+    battingAverage: Number(s.batting_avg ?? 0),
+    obp: Number(s.batting_obp ?? 0),
+    slg: Number(s.batting_slg ?? 0),
+    ops: Number(s.batting_ops ?? 0),
   };
 }
