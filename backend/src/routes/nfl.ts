@@ -1,30 +1,23 @@
+// src/routes/nfl.ts
 import { Router } from "express";
-import nflJson from "../data/nfl.json" assert { type: "json" };
-
-type NFLPlayer = {
-  id: number;
-  name: string;
-  team: string;
-  touchdowns: number;
-  yards: number;
-  interceptions: number;
-};
-
-const nflData = nflJson as NFLPlayer[];
+import { fetchNFLPlayerStats } from "../utils/nflApi";
 
 const router = Router();
 
-router.get("/players", (_req, res) => {
-  res.json(nflData);
-});
+router.get("/players/:name", async (req, res) => {
+  const name = req.params.name;
 
-router.get("/players/:name", (req, res) => {
-  const name = req.params.name.toLowerCase();
-  const player = nflData.find((p) =>
-    p.name.toLowerCase().includes(name)
-  );
-  if (!player) return res.status(404).json({ message: "Player not found" });
-  res.json(player);
+  console.log("🏈 Fetching NFL stats for:", name);
+
+  const stats = await fetchNFLPlayerStats(name);
+
+  if (!stats) {
+    return res
+      .status(404)
+      .json({ message: "Player not found or no stats available" });
+  }
+
+  return res.json(stats);
 });
 
 export default router;

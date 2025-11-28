@@ -1,30 +1,20 @@
 import { Router } from "express";
-import mlbJson from "../data/mlb.json" assert { type: "json" };
-
-type MLBPlayer = {
-  id: number;
-  name: string;
-  team: string;
-  homeRuns: number;
-  battingAverage: number;
-  RBIs: number;
-};
-
-const mlbData = mlbJson as MLBPlayer[];
+import { fetchMLBPlayerStats } from "../utils/mlbApi.js";
 
 const router = Router();
 
-router.get("/players", (_req, res) => {
-  res.json(mlbData);
-});
+router.get("/players/:name", async (req, res) => {
+  const name = req.params.name;
 
-router.get("/players/:name", (req, res) => {
-  const name = req.params.name.toLowerCase();
-  const player = mlbData.find((p) =>
-    p.name.toLowerCase().includes(name)
-  );
-  if (!player) return res.status(404).json({ message: "Player not found" });
-  res.json(player);
+  console.log("⚾ Fetching MLB stats for:", name);
+
+  const stats = await fetchMLBPlayerStats(name);
+
+  if (!stats) {
+    return res.status(404).json({ message: "Player not found or no stats" });
+  }
+
+  res.json(stats);
 });
 
 export default router;
