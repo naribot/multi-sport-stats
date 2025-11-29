@@ -4,14 +4,10 @@ import { fetchNBAPlayerBase, fetchNBAPlayerDetails } from "../utils/nbaApi";
 
 const router = Router();
 
-/** 
- * 1) BASE STATS ROUTE
- * Example: GET /api/nba/players/curry
- */
 router.get("/players/:name", async (req, res) => {
   const name = req.params.name.trim();
 
-  console.log("🏀 Fetching BASE NBA stats for:", name);
+  console.log("Fetching BASE NBA stats for:", name);
 
   try {
     const stats = await fetchNBAPlayerBase(name);
@@ -29,14 +25,11 @@ router.get("/players/:name", async (req, res) => {
   }
 });
 
-/**
- * 2) EXPANDED STATS ROUTE
- * Example: GET /api/nba/details/curry
- */
+
 router.get("/details/:name", async (req, res) => {
   const name = req.params.name.trim();
 
-  console.log("🏀 Fetching EXPANDED NBA stats for:", name);
+  console.log("Fetching EXPANDED NBA stats for:", name);
 
   try {
     const details = await fetchNBAPlayerDetails(name);

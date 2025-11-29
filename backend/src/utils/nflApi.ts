@@ -37,15 +37,15 @@ export async function fetchNFLPlayerStats(
   name: string
 ): Promise<NFLStats | null> {
   if (!API_KEY) {
-    console.error("❌ BALLDONTLIE_KEY is missing");
+    console.error(" BALLDONTLIE_KEY is missing");
     return null;
   }
 
-  // Using last name to make the search more reliable
+  // using last name to make the search more reliable
   const parts = name.trim().split(" ");
   const lastName = parts[parts.length - 1];
 
-  console.log("🏈 Searching NFL player:", lastName);
+  console.log(" Searching NFL player:", lastName);
 
   const playerUrl = `https://api.balldontlie.io/nfl/v1/players?search=${encodeURIComponent(
     lastName
@@ -56,7 +56,7 @@ export async function fetchNFLPlayerStats(
   });
 
   if (!playerRes.ok) {
-    console.error("❌ Player search error:", await playerRes.text());
+    console.error(" Player search error:", await playerRes.text());
     return null;
   }
 
@@ -64,11 +64,11 @@ export async function fetchNFLPlayerStats(
   const candidates: any[] = playerJson.data ?? [];
 
   if (!candidates.length) {
-    console.log("❌ No NFL player match for:", name);
+    console.log(" No NFL player match for:", name);
     return null;
   }
 
-  // Try to pick the best match (full name if possible)
+  // pick the best match with full name
   const lowerFull = name.toLowerCase().trim();
   const player =
     candidates.find(
@@ -76,19 +76,19 @@ export async function fetchNFLPlayerStats(
         `${p.first_name} ${p.last_name}`.toLowerCase() === lowerFull
     ) || candidates[0];
 
-  console.log("✅ Matched NFL player:", player.id, player.first_name, player.last_name);
+  console.log(" Matched NFL player:", player.id, player.first_name, player.last_name);
 
   // ---- Get game-level stats for 2024 and sum them ----
   const statsUrl = `https://api.balldontlie.io/nfl/v1/stats?player_ids[]=${player.id}&seasons[]=2024&per_page=100`;
 
-  console.log("🏈 Fetching stats:", statsUrl);
+  console.log(" Fetching stats:", statsUrl);
 
   const statsRes = await fetch(statsUrl, {
     headers: { Authorization: `Bearer ${API_KEY}` },
   });
 
   if (!statsRes.ok) {
-    console.error("❌ Stats fetch error:", await statsRes.text());
+    console.error(" Stats fetch error:", await statsRes.text());
     return null;
   }
 
@@ -96,7 +96,7 @@ export async function fetchNFLPlayerStats(
   const games: any[] = statsJson.data ?? [];
 
   if (!games.length) {
-    console.log("❌ No season stats found for player id:", player.id);
+    console.log(" No season stats found for player id:", player.id);
     return {
       id: player.id,
       name: `${player.first_name} ${player.last_name}`,
@@ -157,7 +157,7 @@ export async function fetchNFLPlayerDetails(
 ): Promise<NFLExpandedStats | null> {
   const last = name.trim().split(" ").pop();
 
-  // 1️⃣ Search player
+  //  Search player
   const playerUrl = `https://api.balldontlie.io/nfl/v1/players?search=${encodeURIComponent(
     last!
   )}&per_page=25`;
@@ -169,7 +169,7 @@ export async function fetchNFLPlayerDetails(
   });
 
   if (!playerRes.ok) {
-    console.error("❌ NFL player search failed:", await playerRes.text());
+    console.error(" NFL player search failed:", await playerRes.text());
     return null;
   }
 
@@ -179,10 +179,10 @@ export async function fetchNFLPlayerDetails(
   const player = playerJson.data[0];
   const playerId = player.id;
 
-  // 2️⃣ Fetch season stats
+  //  Fetch season stats
   const statsUrl = `https://api.balldontlie.io/nfl/v1/season_stats?player_ids[]=${playerId}&season=2024`;
 
-  console.log("📊 NFL Detail Stats URL:", statsUrl);
+  console.log(" NFL Detail Stats URL:", statsUrl);
 
   const statsRes = await fetch(statsUrl, {
     headers: { Authorization: `Bearer ${API_KEY}` },

@@ -7,7 +7,7 @@ const router = Router();
 router.get("/players/:name", async (req, res) => {
   const name = req.params.name;
 
-  console.log("🏈 Fetching NFL stats for:", name);
+  console.log(" Fetching NFL stats for:", name);
 
   const stats = await fetchNFLPlayerStats(name);
 
@@ -22,11 +22,11 @@ router.get("/players/:name", async (req, res) => {
 
 router.get("/details/:name", async (req, res) => {
   const name = req.params.name;
-  console.log("🏈 Fetching NFL EXPANDED stats for:", name);
+  console.log(" Fetching NFL EXPANDED stats for:", name);
 
   const details = await fetchNFLPlayerDetails(name);
   if (!details) {
-    console.log("❌ No expanded stats found");
+    console.log(" No expanded stats found");
     return res.status(404).json({ message: "Expanded stats not found" });
   }
 

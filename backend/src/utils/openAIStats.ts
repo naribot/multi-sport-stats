@@ -80,7 +80,7 @@ Return ONLY JSON.
       yellowCards: Number(parsed.yellowCards || 0)
     };
   } catch (err) {
-    console.error("❌ Failed to parse JSON from OpenAI:", content);
+    console.error(" Failed to parse JSON from OpenAI:", content);
     return { goals: 0, assists: 0, yellowCards: 0 }; 
   }
 }

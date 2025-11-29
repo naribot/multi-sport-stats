@@ -31,9 +31,10 @@ router.get("/players/:name", async (req, res) => {
         name: statsInfo.name,
         team: statsInfo.team,
         position: statsInfo.position,
-        goals: 0,       // placeholder
-        assists: 0,     // placeholder
-        yellowCards: 0  // placeholder
+        // Placeholders fr OpenAI
+        goals: 0,       
+        assists: 0,     
+        yellowCards: 0  
       };
     } catch (err) {
       console.error(" Error fetching soccer player basic info:", err);
@@ -42,7 +43,7 @@ router.get("/players/:name", async (req, res) => {
   }
 
   try {
-    // **NEW CODE**: fetch stats via OpenAI
+    // fetch stats via OpenAI
     const stats = await fetchStatsFromOpenAI(
       basicInfo.name,
       basicInfo.team,
@@ -62,7 +63,6 @@ router.get("/players/:name", async (req, res) => {
     return res.json(combined);
   } catch (err) {
     console.error("Error fetching stats from OpenAI:", err);
-    // Return basic info anyway (without stats) if desired or show error
     return res.status(500).json({ message: "Unable to fetch player stats" });
   }
 });

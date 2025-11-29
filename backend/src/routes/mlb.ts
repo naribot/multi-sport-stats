@@ -8,7 +8,7 @@ const router = Router();
 router.get("/players/:name", async (req, res) => {
   const name = req.params.name;
 
-  console.log("⚾ Fetching MLB stats for:", name);
+  console.log(" Fetching MLB stats for:", name);
 
   const stats = await fetchMLBPlayerStats(name);
 
@@ -22,7 +22,7 @@ router.get("/players/:name", async (req, res) => {
 router.get("/details/:name", async (req, res) => {
   const name = req.params.name;
 
-  console.log("⚾ Fetching EXPANDED MLB stats for:", name);
+  console.log("Fetching EXPANDED MLB stats for:", name);
 
   const stats = await fetchMLBPlayerExpandedStats(name);
 

@@ -4,9 +4,7 @@ import fetch from "node-fetch";
 
 const API_KEY = process.env.BALLDONTLIE_KEY;
 
-/* -------------------------------------------
-   TYPES
---------------------------------------------*/
+
 export interface NBAPlayerBase {
   id: number;
   name: string;
@@ -31,9 +29,6 @@ export interface NBAPlayerDetails {
   turnovers: number;
 }
 
-/* -------------------------------------------
-   SEARCH PLAYER → returns ID + info
---------------------------------------------*/
 async function searchNBAPlayer(name: string) {
   const url = `https://api.balldontlie.io/nba/v1/players?search=${encodeURIComponent(
     name
@@ -44,7 +39,7 @@ async function searchNBAPlayer(name: string) {
   });
 
   if (!res.ok) {
-    console.error("❌ Player search error:", await res.text());
+    console.error(" Player search error:", await res.text());
     return null;
   }
 
@@ -54,9 +49,7 @@ async function searchNBAPlayer(name: string) {
   return json.data[0]; // first match
 }
 
-/* -------------------------------------------
-   BASE STATS — used on the main NBAPage
---------------------------------------------*/
+
 export async function fetchNBAPlayerBase(
   name: string
 ): Promise<NBAPlayerBase | null> {
@@ -72,7 +65,7 @@ export async function fetchNBAPlayerBase(
   });
 
   if (!res.ok) {
-    console.error("❌ Base stats error:", await res.text());
+    console.error(" Base stats error:", await res.text());
     return null;
   }
 
@@ -97,9 +90,7 @@ export async function fetchNBAPlayerBase(
   };
 }
 
-/* -------------------------------------------
-   DETAILED STATS — used on NBA Expanded Page
---------------------------------------------*/
+// separate function for detailed stats 
 export async function fetchNBAPlayerDetails(
   name: string
 ): Promise<NBAPlayerDetails | null> {
@@ -115,7 +106,7 @@ export async function fetchNBAPlayerDetails(
   });
 
   if (!res.ok) {
-    console.error("❌ Detail stats error:", await res.text());
+    console.error(" Detail stats error:", await res.text());
     return null;
   }
 
