@@ -116,7 +116,7 @@ export async function fetchNBAPlayerDetails(
   const s = json.data[0].stats;
 
   return {
-    id,
+    id: player.id,
     name: `${player.first_name} ${player.last_name}`,
     team: player.team?.name ?? "Unknown",
     age: s.age ?? 0,

@@ -11,6 +11,9 @@ import * as nbaModule from "./routes/nba.js";
 import * as nflModule from "./routes/nfl.js";
 import mlbRouter from "./routes/mlb.js"; 
 import predictRouter from "./routes/predict.js";
+import fantasyRouter from "./routes/fantasy.js";
+import fantasyTeamsRouter from "./routes/fantasyTeams.js";
+
 
 
 const app = express();
@@ -34,7 +37,8 @@ app.use("/api/nba", nbaRouter);
 app.use("/api/mlb", mlbRouter);
 app.use("/api/nfl", nflRouter);
 app.use("/api/chat", predictRouter);
-
+app.use("/api/fantasy", fantasyRouter);
+app.use("/api/fantasy", fantasyTeamsRouter);
 
 
 const PORT = process.env.PORT || 5000;
