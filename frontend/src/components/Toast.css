@@ -1,0 +1,30 @@
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  color: white;
+  background: #333;
+  opacity: 0;
+  transform: translateY(-20px);
+  animation: toastIn 0.35s forwards;
+  z-index: 2000;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.toast.success {
+  background: #28c76f;
+}
+
+.toast.error {
+  background: #ff4444;
+}
+
+@keyframes toastIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

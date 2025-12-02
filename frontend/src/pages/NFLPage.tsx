@@ -1,7 +1,11 @@
-// src/pages/NFLPage.tsx
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import './SoccerPage.css';
+import { fetchNFLPlayer } from "../api/nflApi";
+import PredictionChat from "../components/PredictionChat";
+import { addToFantasy } from "../api/fantasyApi";
+import Toast from "../components/Toast";
+import { saveRecentSearch, getRecentSearches, clearRecentSearches } from "../api/recentSearches";
 
 
 function SignInModal({
@@ -71,6 +75,7 @@ type NFLPlayer = {
   touchdowns: number;
   yards: number;
   interceptions: number;
+  
 };
 
 type Option = { value: string; label: string };
@@ -86,7 +91,7 @@ function LogoutModal({
     <div className="modal-backdrop">
       <div className="modal-box">
         <h2>Log Out?</h2>
-        <p>Are you sure you want to log out?</p>
+        <p style={{color: "Red"}}>Are you sure you want to log out?</p>
 
         <div className="modal-actions">
           <button className="sign-in" onClick={onConfirm}>
@@ -179,26 +184,66 @@ export default function NFLPage() {
   const show = (v: string) =>
     selectedStats.size === NFL_OPTIONS.length || selectedStats.has(v);
 
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [loading, setloading] = useState(false);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [showRecent, setShowRecent] = useState(true);
+
+
+useEffect(() => {
+  if (!user) return;
+
+  const savedQuery = localStorage.getItem("nfl_query");
+  const savedPlayer = localStorage.getItem("nfl_player");
+  const savedCompare = localStorage.getItem("nfl_compare");
+
+  if (savedQuery) setQuery(savedQuery);
+  if (savedPlayer) setPlayer(JSON.parse(savedPlayer));
+  if (savedCompare) setCompareList(JSON.parse(savedCompare));
+}, [user]);
+
+useEffect(() => {
+  setRecent(getRecentSearches("nfl"));
+}, []);
+
+
   const handleSearch = async () => {
-    setError("");
-    try {
-      const res = await fetch(`http://localhost:5000/api/nfl/players/${query}`);
-      if (!res.ok) throw new Error("Player not found");
-      const data = await res.json();
-      setPlayer(data);
-    } catch {
-      setPlayer(null);
-      setError("Player not found");
+  setError("");
+  setloading(true);
+  saveRecentSearch("nfl", query);
+  setRecent(getRecentSearches("nfl"));
+  try {
+    const data = await fetchNFLPlayer(query);
+    setPlayer(data);
+
+    if (user) {
+      localStorage.setItem("nfl_query", query);
+      localStorage.setItem("nfl_player", JSON.stringify(data));
     }
-  };
+  } catch {
+    setPlayer(null);
+    setError("Player not found");
+  } finally {
+    setloading(false);
+  }
+};
+
 
   const addToCompare = () => {
-    if (!player) return;
-    setCompareList(prev => {
-      const exists = prev.some(x => keyOf(x) === keyOf(player));
-      return exists ? prev : [...prev, player];
-    });
-  };
+  if (!player) return;
+
+  setCompareList(prev => {
+    const exists = prev.some(x => keyOf(x) === keyOf(player));
+    const updated = exists ? prev : [...prev, player];
+
+    if (user) {
+      localStorage.setItem("nfl_compare", JSON.stringify(updated));
+    }
+
+    return updated;
+  });
+};
+
 
   return (
     <div className="page-wrapper nfl-bg">
@@ -217,6 +262,7 @@ export default function NFLPage() {
             ))}
           </nav>
           <div className="auth-buttons">
+            <button style={{marginRight: "150px"}} className="sign-in" onClick={() => navigate(`/fantasy`)}>Fantasy Team</button>
             {user ? (
                       <>
                         <span style={{ marginRight: "1rem" }}>Hi, {user}!</span>
@@ -227,6 +273,11 @@ export default function NFLPage() {
                             onClose={() => setShowLogoutModal(false)}
                             onConfirm={() => {
                             localStorage.removeItem("user");
+                            localStorage.removeItem("nfl_query");
+                            localStorage.removeItem("nfl_player");
+                            localStorage.removeItem("nfl_compare");
+                            clearRecentSearches("nfl");
+                            setRecent([]);
                             setShowLogoutModal(false);
                             window.location.reload();
                             }}
@@ -255,6 +306,44 @@ export default function NFLPage() {
           <button onClick={handleSearch}>Search</button>
         </div>
 
+        {/* RECENT SEARCHES */}
+<div className="recent-box">
+  <button 
+    className="toggle-recent" 
+    onClick={() => setShowRecent(!showRecent)}
+  >
+    {showRecent ? "Hide Recent Searches ▲" : "Show Recent Searches ▼"}
+  </button>
+
+  {showRecent && recent.length > 0 && (
+    <div className="chips-row">
+      {recent.map((r) => (
+        <span 
+          key={r}
+          className="chip"
+          onClick={() => {
+            setQuery(r);
+            handleSearch();    
+          }}
+        >
+          {r}
+        </span>
+      ))}
+
+      <button 
+        className="clear-chips" 
+        onClick={() => {
+          clearRecentSearches("nfl");
+          setRecent([]);
+        }}
+      >
+        Clear All
+      </button>
+    </div>
+  )}
+</div>
+
+
         <div className="filter-box">
           <MultiStatPicker
             options={NFL_OPTIONS as unknown as Option[]}
@@ -264,6 +353,8 @@ export default function NFLPage() {
           />
         </div>
 
+        {loading && <p style={{ textAlign: "center", color: "white" }}>Loading player stats...</p>}
+
         <div className="result">
           {error && <p className="error">{error}</p>}
           {player && (
@@ -271,11 +362,11 @@ export default function NFLPage() {
               <table className="stats-table">
                 <thead>
                   <tr>
-                    <th>Player</th>
+                    <th>Player (2024 Season)</th>
                     <th>Team</th>
-                    {show("touchdowns") && <th>TD</th>}
+                    {show("touchdowns") && <th>TOUCHDOWN</th>}
                     {show("yards") && <th>Yards</th>}
-                    {show("interceptions") && <th>INT</th>}
+                    {show("interceptions") && <th>INTERCEPTION</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -290,7 +381,50 @@ export default function NFLPage() {
               </table>
               <div className="compare-actions">
                 <button className="add-btn" onClick={addToCompare}>Add</button>
+                <button
+                className="add-btn"
+                onClick={() => navigate(`/nfl/details/${player.name}`)}
+              >
+                Expand
+              </button>
+              <button
+  className="add-btn"
+  onClick={() =>
+    addToFantasy({
+      id: player.id,
+      name: player.name,
+      team: player.team,
+      sport: "nfl",
+      rushingYards: player.yards,
+      receivingYards: player.yards,   
+      rushingTD: player.touchdowns,
+      receivingTD: player.touchdowns, 
+      interceptions: player.interceptions,
+
+      position: "-", 
+    }) .then(() => setToast({ msg: "Player added to fantasy!", type: "success" }))
+       .catch(() => setToast({ msg: "Failed to add player.", type: "error" }))
+  }
+>
+  Add to Fantasy
+</button>
+
+
               </div>
+              {(() => {
+              const predictionData = player
+                ? {
+                    name: player.name,
+                    team: player.team,
+                    points: player.touchdowns,
+                    assists: player.yards,
+                    rebounds: player.interceptions
+                  }
+                : null;
+              
+              
+                    return <PredictionChat sport="nba" player={predictionData} />;
+                  })()}
             </>
           )}
         </div>
@@ -304,7 +438,7 @@ export default function NFLPage() {
                   <th>#</th>
                   <th>Player</th>
                   <th>Team</th>
-                  <th>TD</th>
+                  <th>TOUCHDOWN</th>
                   <th style={{ width: 90 }}>Actions</th>
                 </tr>
               </thead>
@@ -321,7 +455,11 @@ export default function NFLPage() {
                         <button
                           className="remove-btn"
                           onClick={() =>
-                            setCompareList(prev => prev.filter(x => keyOf(x) !== keyOf(p)))
+                            setCompareList(prev => {
+                            const updated = prev.filter(x => keyOf(x) !== keyOf(p));
+                            if (user) localStorage.setItem("nfl_compare", JSON.stringify(updated));
+                              return updated;
+                            })
                           }
                         >
                           Remove
@@ -332,17 +470,29 @@ export default function NFLPage() {
               </tbody>
             </table>
             <div className="compare-actions">
-              <button className="clear-btn" onClick={() => setCompareList([])}>Clear All</button>
+              <button className="clear-btn" onClick={() => {
+                setCompareList([]);
+                if (user) localStorage.removeItem("nfl_compare");
+                }}>Clear All</button>
             </div>
           </section>
         )}
       </main>
+      {toast && (
+  <Toast
+    message={toast.msg}
+    type={toast.type}
+    onClose={() => setToast(null)}
+  />
+)}
+
       {showSignIn && (
   <SignInModal
     onClose={() => setShowSignIn(false)}
     onSignIn={(username) => setUser(username)}
   />
 )}
+<PredictionChat sport="nfl" player={player} />
     </div>
   );
 }

@@ -25,6 +25,7 @@
         .logo {
           font-size: 1.5rem;
           font-weight: bold;
+          margin-right: 130px;
         }
         .nav-tabs {
           display: flex;
@@ -277,7 +278,7 @@
   color: #eaeaea;
 
 }
-/* Dark blurred background overlay */
+
 .modal-backdrop {
   position: fixed;
   top: 0;
@@ -422,7 +423,7 @@
 }
 
 .signup-box h1 {
-  color: #133d7a; /* professional dark blue */
+  color: #133d7a; 
   font-size: 1.9rem;
   margin-bottom: 1.8rem;
   font-weight: 700;
@@ -494,6 +495,50 @@
   text-decoration: underline;
 }
 
+.recent-box {
+  margin-top: 15px;
+  margin-bottom: 10px;
+}
+
+.toggle-recent {
+  background: #222;
+  padding: 6px 10px;
+  color: #fff;
+  border-radius: 6px;
+  border: 1px solid #444;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.chips-row {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  background: #333;
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: #eee;
+  cursor: pointer;
+  transition: 0.2s;
+  border: 1px solid #555;
+}
+
+.chip:hover {
+  background: #555;
+}
+
+.clear-chips {
+  background: #b00000;
+  padding: 6px 10px;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
 
 

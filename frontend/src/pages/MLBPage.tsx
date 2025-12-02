@@ -1,7 +1,12 @@
-// src/pages/MLBPage.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './SoccerPage.css';
+import { fetchMLBPlayer } from "../api/mlbApi";
+import PredictionChat from "../components/PredictionChat";
+import { addToFantasy } from "../api/fantasyApi";
+import Toast from "../components/Toast";
+import { saveRecentSearch, getRecentSearches, clearRecentSearches } from "../api/recentSearches";
+
 
 function SignInModal({
   onClose,
@@ -74,7 +79,7 @@ function LogoutModal({
     <div className="modal-backdrop">
       <div className="modal-box">
         <h2>Log Out?</h2>
-        <p>Are you sure you want to log out?</p>
+        <p style={{color: "Red"}}>Are you sure you want to log out?</p>
 
         <div className="modal-actions">
           <button className="sign-in" onClick={onConfirm}>
@@ -168,11 +173,34 @@ export default function MLBPage() {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showSignIn, setShowSignIn] = useState(false);
   const [user, setUser] = useState(localStorage.getItem("user"));
+  const [loading, setloading] = useState(false);
 
 
   const [selectedStats, setSelectedStats] = useState<Set<string>>(
     new Set(MLB_OPTIONS.map(o => o.value))
   );
+
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
+  const [recent, setRecent] = useState<string[]>([]);
+  const [showRecent, setShowRecent] = useState(true);
+
+
+useEffect(() => {
+  if (!user) return;
+
+  const savedQuery = localStorage.getItem("mlb_query");
+  const savedPlayer = localStorage.getItem("mlb_player");
+  const savedCompare = localStorage.getItem("mlb_compare");
+
+  if (savedQuery) setQuery(savedQuery);
+  if (savedPlayer) setPlayer(JSON.parse(savedPlayer));
+  if (savedCompare) setCompareList(JSON.parse(savedCompare));
+}, [user]);
+
+useEffect(() => {
+  setRecent(getRecentSearches("mlb"));
+}, []);
+
 
   const show = (v: string) =>
     selectedStats.size === MLB_OPTIONS.length || selectedStats.has(v);
@@ -180,24 +208,44 @@ export default function MLBPage() {
   const keyOf = (p: MLBPlayer) => `${p.id ?? p.name}|${p.team}`.toLowerCase();
 
   const addToCompare = () => {
-    if (!player) return;
-    setCompareList(prev =>
-      prev.some(x => keyOf(x) === keyOf(player)) ? prev : [...prev, player]
-    );
-  };
+  if (!player) return;
+
+  setCompareList(prev => {
+    const exists = prev.some(x => keyOf(x) === keyOf(player));
+    const updated = exists ? prev : [...prev, player];
+
+    if (user) {
+      localStorage.setItem("mlb_compare", JSON.stringify(updated));
+    }
+
+    return updated;
+  });
+};
+
 
   const handleSearch = async () => {
-    setError("");
-    try {
-      const res = await fetch(`http://localhost:5000/api/mlb/players/${query}`);
-      if (!res.ok) throw new Error("Player not found");
-      const data = await res.json();
-      setPlayer(data);
-    } catch {
-      setPlayer(null);
-      setError("Player not found");
-    }
-  };
+  setError("");
+  setloading(true);
+  saveRecentSearch("mlb", query);
+  setRecent(getRecentSearches("mlb"));
+
+  const data = await fetchMLBPlayer(query);
+
+  if (!data) {
+    setPlayer(null);
+    setError("Player not found");
+    return;
+  }
+
+  setPlayer(data);
+
+  if (user) {
+    localStorage.setItem("mlb_query", query);
+    localStorage.setItem("mlb_player", JSON.stringify(data));
+    setloading(false);
+  } 
+};
+
 
   return (
     <div className="page-wrapper mlb-bg">
@@ -216,6 +264,7 @@ export default function MLBPage() {
             ))}
           </nav>
           <div className="auth-buttons">
+            <button style={{marginRight: "150px"}} className="sign-in" onClick={() => navigate(`/fantasy`)}>Fantasy Team</button>
             {user ? (
                       <>
                         <span style={{ marginRight: "1rem" }}>Hi, {user}!</span>
@@ -226,6 +275,11 @@ export default function MLBPage() {
                             onClose={() => setShowLogoutModal(false)}
                             onConfirm={() => {
                             localStorage.removeItem("user");
+                            localStorage.removeItem("mlb_query");
+                            localStorage.removeItem("mlb_player");
+                            localStorage.removeItem("mlb_compare");
+                            clearRecentSearches("mlb");
+                            setRecent([]);
                             setShowLogoutModal(false);
                             window.location.reload();
                             }}
@@ -253,6 +307,42 @@ export default function MLBPage() {
           />
           <button onClick={handleSearch}>Search</button>
         </div>
+        {/* RECENT SEARCHES */}
+<div className="recent-box">
+  <button 
+    className="toggle-recent" 
+    onClick={() => setShowRecent(!showRecent)}
+  >
+    {showRecent ? "Hide Recent Searches ▲" : "Show Recent Searches ▼"}
+  </button>
+
+  {showRecent && recent.length > 0 && (
+    <div className="chips-row">
+      {recent.map((r) => (
+        <span 
+          key={r}
+          className="chip"
+          onClick={() => {
+            setQuery(r);
+            handleSearch();    
+          }}
+        >
+          {r}
+        </span>
+      ))}
+
+      <button 
+        className="clear-chips" 
+        onClick={() => {
+          clearRecentSearches("mlb");
+          setRecent([]);
+        }}
+      >
+        Clear All
+      </button>
+    </div>
+  )}
+</div>
 
         <div className="filter-box">
           <MultiStatPicker
@@ -262,6 +352,8 @@ export default function MLBPage() {
           />
         </div>
 
+        {loading && <p style={{ textAlign: "center", color: "white" }}>Loading player stats...</p>}
+
         <div className="result">
           {error && <p className="error">{error}</p>}
           {player && (
@@ -269,9 +361,9 @@ export default function MLBPage() {
               <table className="stats-table">
                 <thead>
                   <tr>
-                    <th>Player</th>
+                    <th>Player (2024 Season)</th>
                     <th>Team</th>
-                    {show("homeRuns") && <th>HR</th>}
+                    {show("homeRuns") && <th>HOME RUNS</th>}
                     {show("battingAverage") && <th>AVG</th>}
                     {show("RBIs") && <th>RBIs</th>}
                   </tr>
@@ -288,7 +380,39 @@ export default function MLBPage() {
               </table>
               <div className="compare-actions">
                 <button className="add-btn" onClick={addToCompare}>Add</button>
+                <button 
+                className="add-btn"
+                onClick={() => navigate(`/mlb/expanded/${player.name}`)}
+                >
+                Expand
+              </button>
+               <button
+  className="add-btn"
+  onClick={() =>
+    addToFantasy({
+      ...player,      
+      sport: "mlb",
+    }) .then(() => setToast({ msg: "Player added to fantasy!", type: "success" }))
+       .catch(() => setToast({ msg: "Failed to add player.", type: "error" }))
+  }
+>
+  Add to Fantasy
+</button>
               </div>
+              {(() => {
+              const predictionData = player
+                ? {
+                    name: player.name,
+                    team: player.team,
+                    points: player.homeRuns,
+                    assists: player.battingAverage,
+                    rebounds: player.RBIs
+                  }
+                : null;
+              
+              
+                    return <PredictionChat sport="nba" player={predictionData} />;
+                  })()}
             </>
           )}
         </div>
@@ -302,7 +426,7 @@ export default function MLBPage() {
                   <th>#</th>
                   <th>Player</th>
                   <th>Team</th>
-                  <th>HR</th>
+                  <th>HOME RUNS</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -318,9 +442,13 @@ export default function MLBPage() {
                       <td>
                         <button
                           className="remove-btn"
-                          onClick={() => setCompareList(prev =>
-                            prev.filter(x => keyOf(x) !== keyOf(p))
-                          )}
+                          onClick={() =>
+                            setCompareList(prev => {
+                            const updated = prev.filter(x => keyOf(x) !== keyOf(p));
+                              if (user) localStorage.setItem("mlb_compare", JSON.stringify(updated));
+                                return updated;
+                              })
+                          }
                         >
                           Remove
                         </button>
@@ -330,17 +458,28 @@ export default function MLBPage() {
               </tbody>
             </table>
             <div className="compare-actions">
-              <button className="clear-btn" onClick={() => setCompareList([])}>Clear All</button>
+              <button className="clear-btn" onClick={() => {
+                setCompareList([]);
+                if (user) localStorage.removeItem("mlb_compare");
+                }}>Clear All</button>
             </div>
           </section>
         )}
       </main>
+      {toast && (
+  <Toast
+    message={toast.msg}
+    type={toast.type}
+    onClose={() => setToast(null)}
+  />
+)}
       {showSignIn && (
   <SignInModal
     onClose={() => setShowSignIn(false)}
     onSignIn={(username) => setUser(username)}
   />
 )}
+<PredictionChat sport="mlb" player={player} />
     </div>
   );
 }

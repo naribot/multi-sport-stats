@@ -1,8 +1,11 @@
-// src/pages/NBAPage.tsx
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import './SoccerPage.css';
-
+import { fetchNBAPlayer } from "../api/nbaApi";
+import PredictionChat from "../components/PredictionChat";
+import { addToFantasy } from "../api/fantasyApi";
+import Toast from "../components/Toast";
+import { saveRecentSearch, getRecentSearches, clearRecentSearches } from "../api/recentSearches";
 
 
 
@@ -76,8 +79,8 @@ function LogoutModal({
   return (
     <div className="modal-backdrop">
       <div className="modal-box">
-        <h2>Log Out?</h2>
-        <p>Are you sure you want to log out?</p>
+        <h2>Log Out</h2>
+        <p style={{color: "Red"}}>Are you sure you want to log out?</p>
 
         <div className="modal-actions">
           <button className="sign-in" onClick={onConfirm}>
@@ -97,6 +100,7 @@ type NBAPlayer = {
   points: number;
   assists: number;
   rebounds: number;
+  totalPoints: number;
 };
 
 type Option = { value: string; label: string };
@@ -126,8 +130,8 @@ function MultiStatPicker({
   const toggleAll = () => {
     onChange(
       allSelected
-        ? new Set<string>() // none selected
-        : new Set(options.map(o => o.value)) // select all
+        ? new Set<string>() 
+        : new Set(options.map(o => o.value)) 
     );
   };
 
@@ -171,6 +175,7 @@ function MultiStatPicker({
 
 
 export default function NBAPage() {
+
   const [compareList, setCompareList] = useState<NBAPlayer[]>([]);
   const keyOf = (p: NBAPlayer) => `${p.id ?? p.name}|${p.team}`.toLowerCase();
   const [query, setQuery] = useState("");
@@ -181,11 +186,14 @@ export default function NBAPage() {
   { value: "points", label: "Points" },
   { value: "assists", label: "Assists" },
   { value: "rebounds", label: "Rebounds" },
+  { value: "totalPoints", label: "totalPoints" },
 ] as const;
 
 const [showLogoutModal, setShowLogoutModal] = useState(false);
 const [showSignIn, setShowSignIn] = useState(false);
 const [user, setUser] = useState(localStorage.getItem("user"));
+const [recent, setRecent] = useState<string[]>([]);
+const [showRecent, setShowRecent] = useState(true);
 
 
 const [selectedStats, setSelectedStats] = useState<Set<string>>(
@@ -194,31 +202,69 @@ const [selectedStats, setSelectedStats] = useState<Set<string>>(
 const show = (v: string) =>
   selectedStats.size === NBA_OPTIONS.length || selectedStats.has(v);
 
+const [toast, setToast] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
 
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false); 
+
+
+    useEffect(() => {
+  if (!user) return; 
+
+  const savedQuery = localStorage.getItem("nba_query");
+  const savedPlayer = localStorage.getItem("nba_player");
+  const savedCompare = localStorage.getItem("nba_compare");
+
+  if (savedQuery) setQuery(savedQuery);
+  if (savedPlayer) setPlayer(JSON.parse(savedPlayer));
+  if (savedCompare) setCompareList(JSON.parse(savedCompare));
+}, [user]);
+
+    useEffect(() => {
+      setRecent(getRecentSearches("nba"));
+    }, []);
+
 
     const addToCompare = () => {
-    if (!player) return;
-        setCompareList(prev => {
-        const exists = prev.some(x => keyOf(x) === keyOf(player));
-    return exists ? prev : [...prev, player];
-    });
-   };
+  if (!player) return;
+
+  setCompareList(prev => {
+    const exists = prev.some(x => keyOf(x) === keyOf(player));
+    const updated = exists ? prev : [...prev, player];
+
+    if (user) {
+      localStorage.setItem("nba_compare", JSON.stringify(updated));
+    }
+
+    return updated; 
+  });
+};
+
+   
 
 
   const handleSearch = async () => {
-    setError("");
-    try {
-      const res = await fetch(`http://localhost:5000/api/nba/players/${query}`);
-      if (!res.ok) throw new Error("Player not found");
-      const data = await res.json();
-      setPlayer(data);
-    } catch (err) {
-      setPlayer(null);
-      setError("Player not found");
+  setError("");
+  setLoading(true);
+  saveRecentSearch("nba", query);
+  setRecent(getRecentSearches("nba"));
+  try {
+    const data = await fetchNBAPlayer(query);   
+    setPlayer(data);
+
+    if (user) {
+      localStorage.setItem("nba_query", query);
+      localStorage.setItem("nba_player", JSON.stringify(data));
     }
-  };
+  } catch (err) {
+    setPlayer(null);
+    setError("Player not found");
+  } finally {
+    setLoading(false); 
+  }
+};
+
 
   const filteredStat = (stat: keyof NBAPlayer) => filter === "All" || filter === stat;
 
@@ -239,9 +285,10 @@ const show = (v: string) =>
             ))}
           </nav>
           <div className="auth-buttons">
+            <button style={{marginRight: "150px"}} className="sign-in" onClick={() => navigate(`/fantasy`)}>Fantasy Team</button>
             {user ? (
                       <>
-                        <span style={{ marginRight: "1rem" }}>Hi, {user}!</span>
+                        <span style={{ marginRight: "1rem", fontFamily: "'Segoe UI', sans-serif", fontWeight: "font-weight: bold" }}>Hi, {user}!</span>
                         <button className="sign-in" onClick={() => setShowLogoutModal(true)}>Logout</button>
 
                         {showLogoutModal && (
@@ -249,6 +296,13 @@ const show = (v: string) =>
                             onClose={() => setShowLogoutModal(false)}
                             onConfirm={() => {
                             localStorage.removeItem("user");
+                            // Clear NBA saved state
+                            localStorage.removeItem("nba_query");
+                            localStorage.removeItem("nba_player");
+                            localStorage.removeItem("nba_compare");
+                            clearRecentSearches("nba");
+                            setRecent([]);
+
                             setShowLogoutModal(false);
                             window.location.reload();
                             }}
@@ -276,6 +330,43 @@ const show = (v: string) =>
           />
           <button onClick={handleSearch}>Search</button>
         </div>
+        {/* RECENT SEARCHES */}
+<div className="recent-box">
+  <button 
+    className="toggle-recent" 
+    onClick={() => setShowRecent(!showRecent)}
+  >
+    {showRecent ? "Hide Recent Searches ▲" : "Show Recent Searches ▼"}
+  </button>
+
+  {showRecent && recent.length > 0 && (
+    <div className="chips-row">
+      {recent.map((r) => (
+        <span 
+          key={r}
+          className="chip"
+          onClick={() => {
+            setQuery(r);
+            handleSearch();    
+          }}
+        >
+          {r}
+        </span>
+      ))}
+
+      <button 
+        className="clear-chips" 
+        onClick={() => {
+          clearRecentSearches("mlb");
+          setRecent([]);
+        }}
+      >
+        Clear All
+      </button>
+    </div>
+  )}
+</div>
+
 
         <div className="filter-box">
             <MultiStatPicker
@@ -286,6 +377,7 @@ const show = (v: string) =>
             />
         </div>
 
+        {loading && <p style={{ textAlign: "center", color: "white" }}>Loading player stats...</p>}
 
         <div className="result">
         {error && <p className="error">{error}</p>}
@@ -294,11 +386,12 @@ const show = (v: string) =>
     <table className="stats-table">
     <thead>
       <tr>
-        <th>Player</th>
+        <th>Player (2024/2025 Season)</th>
         <th>Team</th>
         {show("points") &&<th>PPG</th> }
         {show("assists") && <th>Assists</th> }
         {show("rebounds") && <th>Rebounds</th> }
+        {show("totalPoints") && <th>total Points (2024 Season)</th> }
       </tr>
     </thead>
     <tbody>
@@ -308,12 +401,48 @@ const show = (v: string) =>
         {show("points")  && <td>{player.points}</td>}
         {show("assists") && <td>{player.assists}</td>}
         {show("rebounds") && <td>{player.rebounds}</td>}
+        {show("totalPoints") && <td>{player.totalPoints}</td>}
       </tr>
     </tbody>
   </table>
   <div className="compare-actions">
       <button className="add-btn" onClick={addToCompare}>Add</button>
-    </div>
+      <button 
+      className="add-btn"
+      onClick={() => navigate(`/nba/expanded/${player.name}`)}
+    >
+      Expand
+    </button>
+    <button
+  className="add-btn"
+  onClick={() =>
+    addToFantasy({
+      ...player,      
+      sport: "nba",
+    }) .then(() => setToast({ msg: "Player added to fantasy!", type: "success" }))
+       .catch(() => setToast({ msg: "Failed to add player.", type: "error" }))
+  }
+>
+  Add to Fantasy
+</button>
+
+
+  </div>
+
+  {(() => {
+const predictionData = player
+  ? {
+      name: player.name,
+      team: player.team,
+      points: player.points,
+      assists: player.assists,
+      rebounds: player.rebounds
+    }
+  : null;
+
+
+      return <PredictionChat sport="nba" player={predictionData} />;
+    })()}
   </>
 )}
 
@@ -343,8 +472,13 @@ const show = (v: string) =>
               <td>
                 <button
                   className="remove-btn"
+                  // change here
                   onClick={() =>
-                    setCompareList(prev => prev.filter(x => keyOf(x) !== keyOf(p)))
+                    setCompareList(prev => {
+                    const updated = prev.filter(x => keyOf(x) !== keyOf(p));
+                    if (user) localStorage.setItem("nba_compare", JSON.stringify(updated));
+                      return updated;
+                      })
                   }
                 >
                   Remove
@@ -356,18 +490,31 @@ const show = (v: string) =>
     </table>
 
     <div className="compare-actions">
-      <button className="clear-btn" onClick={() => setCompareList([])}>Clear All</button>
+      <button className="clear-btn" onClick={() => {
+  setCompareList([]);
+  if (user) localStorage.removeItem("nba_compare");
+}}
+>Clear All</button>
     </div>
   </section>
 )}
 
       </main>
+      {toast && (
+  <Toast
+    message={toast.msg}
+    type={toast.type}
+    onClose={() => setToast(null)}
+  />
+)}
+
       {showSignIn && (
   <SignInModal
     onClose={() => setShowSignIn(false)}
     onSignIn={(username) => setUser(username)}
   />
 )}
+<PredictionChat sport="nba" player={player} />
     </div>
   );
 }

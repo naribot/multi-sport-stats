@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import PlayerCard from "../components/PlayerCard";
 import { fetchPlayerByName } from "../api/soccerApi";
 import './SoccerPage.css';
+import { saveRecentSearch, getRecentSearches, clearRecentSearches } from "../api/recentSearches";
 
 
 type Option = { value: string; label: string };
@@ -78,7 +78,7 @@ function LogoutModal({
     <div className="modal-backdrop">
       <div className="modal-box">
         <h2>Log Out?</h2>
-        <p>Are you sure you want to log out?</p>
+        <p style={{color: "Red"}}>Are you sure you want to log out?</p>
 
         <div className="modal-actions">
           <button className="sign-in" onClick={onConfirm}>
@@ -188,6 +188,28 @@ const keyOf = (p: SoccerPlayer) => `${p.name}|${p.team}`.toLowerCase();
   const [query, setQuery] = useState("");
   const [player, setPlayer] = useState<any>(null);
   const [error, setError] = useState("");
+  const [recent, setRecent] = useState<string[]>([]);
+const [showRecent, setShowRecent] = useState(true);
+
+
+  // Load saved Soccer state when page mounts (only if logged in)
+useEffect(() => {
+  if (!user) return;
+
+  const savedQuery = localStorage.getItem("soccer_query");
+  const savedPlayer = localStorage.getItem("soccer_player");
+  const savedCompare = localStorage.getItem("soccer_compare");
+
+  if (savedQuery) setQuery(savedQuery);
+  if (savedPlayer) setPlayer(JSON.parse(savedPlayer));
+  if (savedCompare) setCompareList(JSON.parse(savedCompare));
+}, [user]);
+
+useEffect(() => {
+  setRecent(getRecentSearches("nfl"));
+}, []);
+
+
   const SOCCER_OPTIONS = [
   { value: "goals", label: "Goals" },
   { value: "assists", label: "Assists" },
@@ -195,7 +217,7 @@ const keyOf = (p: SoccerPlayer) => `${p.name}|${p.team}`.toLowerCase();
 ] as const;
 
 const [selectedStats, setSelectedStats] = useState<Set<string>>(
-  new Set(SOCCER_OPTIONS.map(o => o.value)) // default: all selected
+  new Set(SOCCER_OPTIONS.map(o => o.value)) 
 );
 const show = (v: string) =>
   selectedStats.size === SOCCER_OPTIONS.length || selectedStats.has(v);
@@ -206,7 +228,9 @@ const show = (v: string) =>
 
   const handleSearch = async () => {
   setError("");
-  setLoading(true); // **CHANGE HERE: start loading**
+  setLoading(true);
+  saveRecentSearch("soccer", query);
+  setRecent(getRecentSearches("soccer"));
   try {
     const data = await fetchPlayerByName(query);
     if (!data) {
@@ -222,33 +246,42 @@ const show = (v: string) =>
         yellowCards: Number(data.yellowCards),
       };
       setPlayer(mapped);
+
+      if (user) {
+        localStorage.setItem("soccer_query", query);
+        localStorage.setItem("soccer_player", JSON.stringify(mapped));
+      }
+
     }
   } catch {
     setError("Something went wrong. Try again later.");
   } finally {
-    setLoading(false); // **CHANGE HERE: stop loading**
+    setLoading(false); 
   }
 };
 
 
   const addToCompare = () => {
-  console.log("Add clicked. player =", player);
   if (!player) return;
 
   setCompareList(prev => {
     const exists = prev.some(x => keyOf(x) === keyOf(player));
-    const next = exists ? prev : [...prev, player];
-    console.log("compareList ->", next);
-    return next;
+    const updated = exists ? prev : [...prev, player];
+
+    if (user) {
+      localStorage.setItem("soccer_compare", JSON.stringify(updated));
+    }
+
+    return updated;
   });
 };
+
 
 
   return (
 
     
     <div className="page-wrapper soccer-bg">
-      {/* Header */}
       <header className="header">
         <div className="header-container">
           <div className="logo">MultiSport Stats</div>
@@ -274,6 +307,9 @@ const show = (v: string) =>
                             onClose={() => setShowLogoutModal(false)}
                             onConfirm={() => {
                             localStorage.removeItem("user");
+                            localStorage.removeItem("soccer_query");
+                            localStorage.removeItem("soccer_player");
+                            localStorage.removeItem("soccer_compare");
                             setShowLogoutModal(false);
                             window.location.reload();
                             }}
@@ -288,7 +324,6 @@ const show = (v: string) =>
         </div>
       </header>
 
-      {/* Hero */}
       <main className="hero">
         <h1 className="hero-title">FIND YOUR SOCCER STATS</h1>
         <p className="hero-subtitle">Search by player name to view goals, assists, and disciplinary stats.</p>
@@ -302,6 +337,44 @@ const show = (v: string) =>
           />
           <button onClick={handleSearch}>Search</button>
         </div>
+
+        {/* RECENT SEARCHES */}
+<div className="recent-box">
+  <button 
+    className="toggle-recent" 
+    onClick={() => setShowRecent(!showRecent)}
+  >
+    {showRecent ? "Hide Recent Searches ▲" : "Show Recent Searches ▼"}
+  </button>
+
+  {showRecent && recent.length > 0 && (
+    <div className="chips-row">
+      {recent.map((r) => (
+        <span 
+          key={r}
+          className="chip"
+          onClick={() => {
+            setQuery(r);
+            handleSearch();    
+          }}
+        >
+          {r}
+        </span>
+      ))}
+
+      <button 
+        className="clear-chips" 
+        onClick={() => {
+          clearRecentSearches("soccer");
+          setRecent([]);
+        }}
+      >
+        Clear All
+      </button>
+    </div>
+  )}
+</div>
+
 
         <div className="filter-box">
           <MultiStatPicker
@@ -376,7 +449,11 @@ const show = (v: string) =>
                 <button
                   className="remove-btn"
                   onClick={() =>
-                    setCompareList(prev => prev.filter(x => keyOf(x) !== keyOf(p)))
+                  setCompareList(prev => {
+                  const updated = prev.filter(x => keyOf(x) !== keyOf(p));
+                  if (user) localStorage.setItem("soccer_compare", JSON.stringify(updated));
+                    return updated;
+                    })
                   }
                 >
                   Remove
@@ -388,7 +465,10 @@ const show = (v: string) =>
     </table>
 
     <div className="compare-actions">
-      <button className="clear-btn" onClick={() => setCompareList([])}>Clear All</button>
+      <button className="clear-btn" onClick={() => {
+        setCompareList([]);
+        if (user) localStorage.removeItem("soccer_compare");
+        }}>Clear All</button>
     </div>
   </section>
 )}
