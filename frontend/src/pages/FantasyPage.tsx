@@ -11,14 +11,14 @@ function getPointsColorNBA(points: number) {
 }
 
 function getPointsColorNFL(points: number) {
-  if (points >= 700) return "high";
+  if (points >= 400) return "high";
   if (points >= 250) return "medium";
   return "low";
 }
 
 function getPointsColorMLB(points: number) {
   if (points >= 250) return "high";
-  if (points >= 150) return "medium";
+  if (points >= 140) return "medium";
   return "low";
 }
 
@@ -80,8 +80,8 @@ function getPowerTier(sport: string, score: number) {
       return { tier: "Weak", color: "weak" };
 
     case "mlb":
-      if (score >= 600) return { tier: "Elite", color: "elite" };
-      if (score >= 350) return { tier: "Strong", color: "strong" };
+      if (score >= 2000) return { tier: "Elite", color: "elite" };
+      if (score >= 1500) return { tier: "Strong", color: "strong" };
       if (score >= 150) return { tier: "Average", color: "average" };
       return { tier: "Weak", color: "weak" };
 
